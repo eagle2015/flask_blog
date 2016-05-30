@@ -14,8 +14,8 @@ class Entry(db.Model):
     title = db.Column(db.String(100))
     slug = db.Column(db.String(100), unique=True)
     body = db.Column(db.text)
-    created_timestamp = db.Column(db.DateTime, default=datetime.datetime.now)
-    modified_timestamp = db.Column(db.DateTime, default=datetime.datetime.now, onupdate=datetime.datetime.now)
+    created_timestamp = db.Column(db.DateTime, default=datetime.datetime.now)  # 第一次保存更新
+    modified_timestamp = db.Column(db.DateTime, default=datetime.datetime.now, onupdate=datetime.datetime.now)  #每次保存更新
 
     def __init__(self, *args, **kwargs):
         super(Entry, self).__init__(*args, **kwargs)
