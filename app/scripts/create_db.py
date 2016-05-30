@@ -1,0 +1,7 @@
+# -*- coding: utf-8 -*- 
+__author__ = 'jwh5566'
+
+from app.main import db
+
+if __name__ == '__main__':
+    db.create_all()
