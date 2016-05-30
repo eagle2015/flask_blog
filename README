@@ -1,1 +1,18 @@
 flask的学习案例
+
+第一次提交
+安装python包，理解flask的处理方式
+读取request请求的数据，打开debug模式，查看协议栈
+
+第二次提交
+安装SQLAlchemy， 熟悉SQLAlchemy的操作
+SQLALCHEMY_DATABASE_URI的格式
+dialect+driver://username:password@host:port/database
+
+创建博客文章、标签模型
+创建迁移脚本实现自动更新数据库
+
+
+第三次提交
+熟悉jinja2操作和标签
+创建响应视图的模板
