@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 __author__ = 'Administrator'
 
-from app import app
+from blog import app
 
 from entries.blueprint import entries
 

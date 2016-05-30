@@ -15,3 +15,10 @@ migrate = Migrate(app, db)
 
 manager = Manager(app)
 manager.add_command('db', MigrateCommand)
+
+# @app.route('/')
+# def homepage():
+#     return 'bbbbbb'
+#
+# if __name__ == '__main__':
+#     app.run()

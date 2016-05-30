@@ -4,7 +4,7 @@ __author__ = 'Administrator'
 import datetime
 import re
 
-from app import db
+from blog import db
 
 
 def slugify(s):

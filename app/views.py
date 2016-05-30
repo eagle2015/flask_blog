@@ -3,7 +3,7 @@ __author__ = 'Administrator'
 
 from flask import render_template, request
 
-from app import app
+from blog import app
 
 
 @app.route('/')
