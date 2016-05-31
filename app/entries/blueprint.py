@@ -3,8 +3,8 @@ __author__ = 'jwh5566'
 from flask import Blueprint
 from flask import render_template
 
-from models import Entry
-from helpers import object_List
+from models import Entry, Tag
+from helpers import object_List, entry_List
 
 entries = Blueprint('entries', __name__,
                     template_folder='templates')
@@ -13,18 +13,20 @@ entries = Blueprint('entries', __name__,
 @entries.route('/')
 def index():
     entries = Entry.query.order_by(Entry.created_timestamp.desc())
-    return object_List('entries/index.html', entries)
+    return entry_List('entries/index.html', entries)
 
 
 @entries.route('/tags/')
 def tag_index():
-    pass
+    tags = Tag.query.order_by(Tag.name)
+    return object_List('entries/tag_index.html', tags)
 
 
 @entries.route('/tags/<slug>/')
 def tag_detail(slug):
-    pass
-
+    tag = Tag.query.filter(Tag.slug == slug).first_or_404()
+    entries = tag.entries.order_by(Entry.created_timestamp.desc())
+    return entry_List('entries/tag_detail.html', entries, tag=tag)
 
 @entries.route('/<slug>/')
 def detail(slug):
