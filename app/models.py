@@ -21,6 +21,7 @@ class Entry(db.Model):
     __tablename__ = 'entry'
     STATUS_PUBLIC = 0
     STATUS_DRAFT = 1
+    STATUS_DELETED = 2
 
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100))

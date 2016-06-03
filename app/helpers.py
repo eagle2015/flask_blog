@@ -16,6 +16,8 @@ def object_List(template_name, query, paginate_by=20, **context):
 
 
 def entry_List(template, query, **context):
+    valid_statuses = (Entry.STATUS_PUBLIC, Entry.STATUS_DRAFT)
+    query = query.filter(Entry.status.in_(valid_statuses))
     search = request.args.get('q')
     if search:
         query = query.filter(
@@ -23,3 +25,9 @@ def entry_List(template, query, **context):
             (Entry.title.contains(search))
         )
     return object_List(template, query, **context)
+
+def get_entry_or_404(slug):
+    valid_statuses = (Entry.STATUS_PUBLIC, Entry.STATUS_DRAFT)
+    return (Entry.query.filter(
+        (Entry.slug == slug) & (Entry.status.in_(valid_statuses))
+    ).first_or_404())
