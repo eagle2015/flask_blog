@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*- 
 __author__ = 'jwh5566'
-from flask import Blueprint, redirect, request, url_for, flash
+from flask import Blueprint, redirect, request, url_for, flash, g
 from flask import render_template
+from flask_login import login_required
 
 from models import Entry, Tag
-from helpers import object_List, entry_List, get_entry_or_404
+from helpers import object_List
 from forms import EntryForm, ImageForm
 from blog import db, app
 import os
@@ -14,7 +15,9 @@ from werkzeug.utils import secure_filename
 entries = Blueprint('entries', __name__,
                     template_folder='templates')
 
+
 @entries.route('/image-upload/', methods=['GET', 'POST'])
+@login_required
 def image_upload():
     if request.method == 'POST':
         form = ImageForm(request.form)
@@ -33,7 +36,17 @@ def image_upload():
 @entries.route('/')
 def index():
     entries = Entry.query.order_by(Entry.created_timestamp.desc())
-    return entry_List('entries/index.html', entries)
+    entries = filter_status_by_user(entries)
+    # valid_statuses = (Entry.STATUS_PUBLIC, Entry.STATUS_DRAFT)
+    # entries = query.filter(Entry.status.in_(valid_statuses))
+    if request.args.get("q"):
+        search = request.args.get["q"]
+        entries = entries.filter(
+            (Entry.body.contains(search)) |
+            (Entry.title.contains(search))
+        )
+
+    return object_List('entries/index.html', entries)
 
 
 @entries.route('/tags/')
@@ -46,15 +59,25 @@ def tag_index():
 def tag_detail(slug):
     tag = Tag.query.filter(Tag.slug == slug).first_or_404()
     entries = tag.entries.order_by(Entry.created_timestamp.desc())
-    return entry_List('entries/tag_detail.html', entries, tag=tag)
+    entries = filter_status_by_user(entries)
+    # valid_statuses = (Entry.STATUS_PUBLIC, Entry.STATUS_DRAFT)
+    # entries = query.filter(Entry.status.in_(valid_statuses))
+    if request.args.get("q"):
+        search = request.args.get["q"]
+        entries = entries.filter(
+            (Entry.body.contains(search)) |
+            (Entry.title.contains(search))
+        )
+    return object_List('entries/tag_detail.html', entries, tag=tag)
 
 
 @entries.route('/create/', methods=['GET', 'POST'])
+@login_required
 def create():
     if request.method == 'POST':
         form = EntryForm(request.form)
         if form.validate():
-            entry = form.save_entry(Entry())
+            entry = form.save_entry(Entry(author=g.user))
             db.session.add(entry)
             db.session.commit()
             flash('Entry "%s" created successfully.' % entry.title, 'success')
@@ -71,8 +94,9 @@ def detail(slug):
 
 
 @entries.route('/<slug>/edit/', methods=['GET', 'POST'])
+@login_required
 def edit(slug):
-    entry = get_entry_or_404(slug)
+    entry = get_entry_or_404(slug, author=None)
     if request.method == 'POST':
         form = EntryForm(request.form, obj=entry)
         if form.validate():
@@ -86,9 +110,11 @@ def edit(slug):
     return render_template('entries/edit.html', entry=entry, form=form)
 
 
+
 @entries.route('/<slug>/delete/', methods=['GET', 'POST'])
+@login_required
 def delete(slug):
-    entry = get_entry_or_404(slug)
+    entry = get_entry_or_404(slug, author=None)
     if request.method == 'POST':
         entry.status = Entry.STATUS_DELETED
         db.session.add(entry)
@@ -97,6 +123,23 @@ def delete(slug):
         return redirect(url_for('entries.index'))
     return render_template('entries/delete.html', entry=entry)
 
+def get_entry_or_404(slug, author=None):
+    query = Entry.query.filter(Entry.slug == slug)
+    if author:
+        query = query.filter(Entry.author == author)
+    else:
+        query = filter_status_by_user(query)
+    return query.first_or_404()
+
+def filter_status_by_user(query):
+    if not g.user.is_authenticated:
+        return query.filter(Entry.status == Entry.STATUS_PUBLIC)
+    else:
+        # allow user to view their own drafts
+        return query.filter(
+            (Entry.status == Entry.STATUS_PUBLIC) |
+            ((Entry.author == g.user) & (Entry.status != Entry.STATUS_DELETED))
+        )
 
 
 

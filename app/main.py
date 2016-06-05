@@ -2,6 +2,7 @@
 __author__ = 'Administrator'
 
 from blog import app
+import admin
 import views
 
 from entries.blueprint import entries
