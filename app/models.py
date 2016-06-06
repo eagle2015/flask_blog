@@ -48,6 +48,14 @@ class Entry(db.Model):
         if self.title:
             self.slug = slugify(self.title)
 
+    @property
+    def tag_list(self):
+        return ', '.join(tag.name for tag in self.tags)
+
+    @property
+    def tease(self):
+        return self.body[:100]
+
     def __repr__(self):
         return '<Entry: %s>' % self.title
 
@@ -72,6 +80,7 @@ class User(db.Model):
     name = db.Column(db.String(64))
     slug = db.Column(db.String(64), unique=True)
     active = db.Column(db.Boolean, default=True)
+    admin = db.Column(db.Boolean, default=False)
     created_timestamp = db.Column(db.DateTime, default=datetime.datetime.now)
 
     entries = db.relationship('Entry', backref='author', lazy='dynamic')
@@ -95,6 +104,12 @@ class User(db.Model):
 
     def is_anonymous(self):
         return False
+
+    def is_admin(self):
+        return self.admin
+
+    def __repr__(self):
+        return '<User: %s>' % self.name
 
     @staticmethod
     def make_password(plaintext):
